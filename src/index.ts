@@ -1,9 +1,16 @@
-import { ajax } from 'rxjs/ajax';
+import { forkJoin} from 'rxjs';
+import {ajax} from "rxjs/ajax";
 
-const data$ = ajax.getJSON('https://api.github.com/search/repositories?q=rxjs');
+const request = (url: string) => ajax.getJSON(url);
+const observer =
+    forkJoin({
+        github: request('https://api.github.com/search/repositories?q=rxjs'),
+        gitlab: request('https://gitlab.com/api/v4/projects?search=nodejs'),
+    });
 
-data$.subscribe((value) => console.log('data$ value', value));
 
-const dataGitLab$ = ajax.getJSON('https://gitlab.com/api/v4/projects?search=nodejs');
-
-dataGitLab$.subscribe((value) => console.log('dataGitLab$ value', value));
+observer.subscribe({
+    next: (value: any) => console.log('Next:', value),
+    complete: () => console.log('Complete!'),
+    error: (error) => console.log('Error!', error)
+})
